@@ -18,13 +18,14 @@ package cobra
 import (
 	"bytes"
 	"fmt"
-	"github.com/inconshreveable/mousetrap"
-	flag "github.com/spf13/pflag"
 	"io"
 	"os"
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/inconshreveable/mousetrap"
+	flag "github.com/spf13/pflag"
 )
 
 // Command is just that, a command for your application.
