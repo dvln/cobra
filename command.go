@@ -11,8 +11,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//Package cobra is a commander providing a simple interface to create powerful modern CLI interfaces.
-//In addition to providing an interface, Cobra simultaneously provides a controller to organize your application code.
+// Package cobra is a commander providing a simple interface to create powerful
+// modern CLI interfaces. In addition to providing an interface, Cobra
+// simultaneously provides a controller to organize your application code.
 package cobra
 
 import (
@@ -166,6 +167,7 @@ func (c *Command) UsageFunc() (f func(*Command) error) {
 		}
 	}
 }
+
 func (c *Command) HelpFunc() func(*Command, []string) {
 	if c.helpFunc != nil {
 		return c.helpFunc
@@ -184,7 +186,6 @@ func (c *Command) HelpFunc() func(*Command, []string) {
 			cmd, _, e := c.Root().Find(args)
 			if cmd == nil || e != nil {
 				c.Printf("Unknown help topic %#q.", args)
-
 				c.Root().Usage()
 			} else {
 				err := cmd.Help()
@@ -359,7 +360,7 @@ func argsMinusFirstX(args []string, x string) []string {
 	return args
 }
 
-// find the target command given the args and command tree
+// Find finds the target command given the args and command tree.
 // Meant to be run on the highest node. Only searches down.
 func (c *Command) Find(arrs []string) (*Command, []string, error) {
 	if c == nil {
@@ -406,9 +407,9 @@ func (c *Command) Find(arrs []string) (*Command, []string, error) {
 
 	// If we matched on the root, but we asked for a subcommand, return an error
 	if commandFound.Name() == c.Name() && len(stripFlags(arrs, c)) > 0 && commandFound.Name() != arrs[0] {
-		return nil, a, fmt.Errorf("unknown command %q", a[0])
+		err := fmt.Errorf("unknown command %q", a[0])
+		return nil, a, err
 	}
-
 	return commandFound, a, nil
 }
 
@@ -547,7 +548,7 @@ func (c *Command) Execute() (err error) {
 			c.Help()
 
 		} else {
-			c.Println("Error:", err.Error())
+			c.Println("Problem,", err.Error())
 			c.Printf("Run '%v help' for usage.\n", c.Root().Name())
 		}
 	}
@@ -563,9 +564,9 @@ func (c *Command) initHelp() {
 
 		c.helpCommand = &Command{
 			Use:   "help [command]",
-			Short: "Help about any command",
-			Long: `Help provides help for any command in the application.
-    Simply type ` + c.Name() + ` help [path to command] for full details.`,
+			Short: "help about any command",
+			Long: `Help provides help for any command in the application,
+    simply type ` + c.Name() + ` help [path to command] for full details`,
 			Run:               c.HelpFunc(),
 			PersistentPreRun:  func(cmd *Command, args []string) {},
 			PersistentPostRun: func(cmd *Command, args []string) {},
@@ -953,10 +954,33 @@ func (c *Command) persistentFlag(name string) (flag *flag.Flag) {
 	return
 }
 
-// Parses persistent flag tree & local flags
+var savedParseErr error
+
+// Parses persistent flag tree & local flags, if already parsed it does a
+// more limited "2nd pass" mode where it can udpate defaults in existing
+// flags if someone has updated the stored pflags data
 func (c *Command) ParseFlags(args []string) (err error) {
-	c.mergePersistentFlags()
-	err = c.Flags().Parse(args)
+	if c.Flags().Parsed() {
+		// already parsed, do limited reparse. This method should only be
+		// called if pflags package has been prepped via:
+		// a) running "SetDefValueReparseOK(true)"
+		// b) reloading flags again via PersistentFlags().StringVarP(...) for
+		//    those flags that have new default settings data
+		// c) then calling ParseFlags() as needed (perhaps after Find())
+		// Normally you don't want to do this so use at own risk.  Note, if
+		// you add as-yet unknown flags they will be added into the system
+		// on this 2nd pass so be aware.
+		err = c.Flags().Parse(args)
+		// primary goal is to update default settings so any "primary" error is
+		// stored from the 1st parse run (below), will use that if there is one
+		if savedParseErr != nil {
+			err = savedParseErr
+		}
+	} else {
+		c.mergePersistentFlags()
+		err = c.Flags().Parse(args)
+		savedParseErr = err
+	}
 	return
 }
 
