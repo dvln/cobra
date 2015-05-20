@@ -508,7 +508,7 @@ func (c *Command) errorMsgFromParse() string {
 	}
 }
 
-// Call execute to use the args (os.Args[1:] by default)
+// Execute is used to deal with the args (os.Args[1:] by default)
 // and run through the command tree finding appropriate matches
 // for commands and then corresponding flags.
 func (c *Command) Execute() (err error) {
@@ -526,7 +526,7 @@ func (c *Command) Execute() (err error) {
 		}
 	}
 
-	// initialize help as the last point possible to allow for user
+	// initialize help at the last point possible to allow for user
 	// overriding
 	c.initHelp()
 
@@ -546,10 +546,12 @@ func (c *Command) Execute() (err error) {
 	if err != nil {
 		if err == flag.ErrHelp {
 			c.Help()
-
 		} else {
-			c.Println("Problem,", err.Error())
-			c.Printf("Run '%v help' for usage.\n", c.Root().Name())
+			c.Println("Found", err.Error())
+			c.Printf("Run '%v help' for subcommand listing and basic usage.\n", c.Root().Name())
+			if cmd != nil && cmd.Name() != "" && c.Root().Name() != cmd.Name() {
+				c.Printf("Run '%v %v --help' for detailed subcommand usage.\n", c.Root().Name(), cmd.Name())
+			}
 		}
 	}
 
@@ -954,7 +956,7 @@ func (c *Command) persistentFlag(name string) (flag *flag.Flag) {
 	return
 }
 
-var savedParseErr error
+var savedParseErr = make(map[string]error)
 
 // Parses persistent flag tree & local flags, if already parsed it does a
 // more limited "2nd pass" mode where it can udpate defaults in existing
@@ -973,13 +975,13 @@ func (c *Command) ParseFlags(args []string) (err error) {
 		err = c.Flags().Parse(args)
 		// primary goal is to update default settings so any "primary" error is
 		// stored from the 1st parse run (below), will use that if there is one
-		if savedParseErr != nil {
-			err = savedParseErr
+		if savedParseErr[c.Name()] != nil {
+			err = savedParseErr[c.Name()]
 		}
 	} else {
 		c.mergePersistentFlags()
 		err = c.Flags().Parse(args)
-		savedParseErr = err
+		savedParseErr[c.Name()] = err
 	}
 	return
 }
