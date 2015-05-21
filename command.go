@@ -550,7 +550,7 @@ func (c *Command) Execute() (err error) {
 			c.Println("Found", err.Error())
 			c.Printf("Run '%v help' for subcommand listing and basic usage.\n", c.Root().Name())
 			if cmd != nil && cmd.Name() != "" && c.Root().Name() != cmd.Name() {
-				c.Printf("Run '%v %v --help' for detailed subcommand usage.\n", c.Root().Name(), cmd.Name())
+				c.Printf("Run '%v help %v' for detailed subcommand usage.\n", c.Root().Name(), cmd.Name())
 			}
 		}
 	}
