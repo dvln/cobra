@@ -25,8 +25,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/inconshreveable/mousetrap"
-	flag "github.com/spf13/pflag"
+	"github.com/dvln/mousetrap"
+	flag "github.com/dvln/pflag"
 )
 
 // Command is just that, a command for your application.

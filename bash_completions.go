@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/spf13/pflag"
+	"github.com/dvln/pflag"
 )
 
 const (
