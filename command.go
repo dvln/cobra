@@ -183,7 +183,8 @@ func (c *Command) HelpFunc() func(*Command, []string) {
 				return
 			}
 
-			cmd, _, e := c.Root().Find(args)
+			ignoreBadCmds := false
+			cmd, _, e := c.Root().Find(args, ignoreBadCmds)
 			if cmd == nil || e != nil {
 				c.Printf("Unknown help topic %#q.", args)
 				c.Root().Usage()
@@ -362,7 +363,7 @@ func argsMinusFirstX(args []string, x string) []string {
 
 // Find finds the target command given the args and command tree.
 // Meant to be run on the highest node. Only searches down.
-func (c *Command) Find(arrs []string) (*Command, []string, error) {
+func (c *Command) Find(arrs []string, ignoreBadCmds bool) (*Command, []string, error) {
 	if c == nil {
 		return nil, nil, fmt.Errorf("Called find() on a nil Command")
 	}
@@ -407,8 +408,12 @@ func (c *Command) Find(arrs []string) (*Command, []string, error) {
 
 	// If we matched on the root, but we asked for a subcommand, return an error
 	if commandFound.Name() == c.Name() && len(stripFlags(arrs, c)) > 0 && commandFound.Name() != arrs[0] {
-		err := fmt.Errorf("unknown command %q", a[0])
-		return nil, a, err
+		if !ignoreBadCmds {
+			err := fmt.Errorf("unknown command %q", a[0])
+			return nil, a, err
+		} else {
+			return c.Root(), arrs, nil
+		}
 	}
 	return commandFound, a, nil
 }
@@ -437,6 +442,7 @@ func (c *Command) execute(a []string) (err error) {
 	}
 
 	err = c.ParseFlags(a)
+
 	if err == flag.ErrHelp {
 		c.Help()
 		return nil
@@ -538,7 +544,8 @@ func (c *Command) Execute() (err error) {
 		args = c.args
 	}
 
-	cmd, flags, err := c.Find(args)
+	ignoreBadCmds := false
+	cmd, flags, err := c.Find(args, ignoreBadCmds)
 	if err == nil {
 		err = cmd.execute(flags)
 	}
@@ -575,6 +582,7 @@ func (c *Command) initHelp() {
 		}
 	}
 	c.AddCommand(c.helpCommand)
+	//eriknow
 }
 
 // Used for testing
@@ -610,7 +618,16 @@ func (c *Command) AddCommand(cmds ...*Command) {
 		if nameLen > c.commandsMaxNameLen {
 			c.commandsMaxNameLen = nameLen
 		}
-		c.commands = append(c.commands, x)
+		alreadyThere := false
+		for _, existingCmd := range c.commands {
+			if x.Name() == existingCmd.Name() {
+				alreadyThere = true
+				break
+			}
+		}
+		if !alreadyThere {
+			c.commands = append(c.commands, x)
+		}
 	}
 }
 
