@@ -18,8 +18,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	"github.com/dvln/cobra"
+	"github.com/dvln/viper"
 )
 
 func init() {
@@ -144,8 +144,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
-{{ if .viper }}	"github.com/spf13/viper"
+	"github.com/dvln/cobra"
+{{ if .viper }}	"github.com/dvln/viper"
 {{ end }})
 {{if .viper}}
 var cfgFile string

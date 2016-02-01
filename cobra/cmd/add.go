@@ -18,8 +18,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	"github.com/dvln/cobra"
+	"github.com/dvln/viper"
 )
 
 func init() {
@@ -75,7 +75,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
+	"github.com/dvln/cobra"
 )
 
 // {{.cmdName}}Cmd represents the {{.cmdName}} command

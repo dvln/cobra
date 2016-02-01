@@ -22,7 +22,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spf13/cobra"
+	"github.com/dvln/cobra"
 )
 
 func printOptions(w io.Writer, cmd *cobra.Command, name string) error {
