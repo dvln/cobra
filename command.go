@@ -677,15 +677,15 @@ func (c *Command) ExecuteC() (cmd *Command, err error) {
 }
 
 func (c *Command) initHelpFlag() {
-	if c.Flags().Lookup("help") == nil {
+	if c.Flags().Lookup("help") == nil && c.PersistentFlags().Lookup("help") == nil {
 		c.Flags().BoolP("help", "h", false, "help for "+c.Name())
-		//eriknow: mergePersistentFlags() seems to cache lflags so if it's
+		// Note: mergePersistentFlags() seems to cache lflags so if it's
 		//      been set it wno't add more flags, lets make sure help gets
 		//      in there with a forced addflag (but this crashes 'go test'
 		//      although it does make 'dvln -h' and 'dvln get -h' work fine)
-		//if c.lflags.Lookup("help") == nil {
-			//c.lflags.AddFlag(c.Flags().Lookup("help"))
-		//}
+		// if c.lflags.Lookup("help") == nil {
+		//	c.lflags.AddFlag(c.Flags().Lookup("help"))
+		// }
 	}
 }
 
